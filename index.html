@@ -213,7 +213,7 @@
     </div>
   </div>
 
-  <script>
+ <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbycycSC_iDa3rNIUPT_YBUAW8tYz-zXT5C28ozee8CfeIstGnIe1c-49b0RbywhtzFI/exec";
 
     // Función auxiliar universal para mostrar mensajes
@@ -242,11 +242,31 @@
       }
     }
 
-    // Máscaras en tiempo real
     document.addEventListener("DOMContentLoaded", function() {
       const inputDni = document.getElementById("dni");
       const inputTel = document.getElementById("telefono");
+      const selectPermiso = document.getElementById("permisoClub");
+      const btnSubmit = document.getElementById("btnSubmit");
 
+      // --- VALIDACIÓN EN TIEMPO REAL: Permiso de Club ---
+      if (selectPermiso) {
+        selectPermiso.addEventListener("change", function() {
+          if (this.value === "No") {
+            mostrarAlerta(
+              "Permiso Requerido", 
+              "Para realizar la prueba es <b>requisito obligatorio</b> contar con la autorización por escrito del club en el que estás fichada actualmente.", 
+              "warning"
+            );
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "NO ELEGIBLE SIN PERMISO";
+          } else {
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "ENVIAR INSCRIPCIÓN";
+          }
+        });
+      }
+
+      // Máscaras de entrada en tiempo real
       if (inputDni) {
         inputDni.addEventListener("input", function(e) {
           let val = e.target.value.replace(/\D/g, '');
@@ -284,7 +304,17 @@
       const dniLimpio = data.dni ? data.dni.replace(/\./g, '') : '';
       data.dni = dniLimpio;
 
-      // --- VALIDACIONES DETALLADAS ---
+      // --- 1. VALIDACIÓN DE PERMISO DE CLUB ---
+      if (data.permisoClub === "No") {
+        mostrarAlerta(
+          "Inscripción No Permitida", 
+          "No es posible enviar la inscripción sin contar con el permiso del club de origen.", 
+          "error"
+        );
+        return;
+      }
+
+      // --- 2. VALIDACIONES DE CAMPOS OBLIGATORIOS ---
       const camposBase = [
         { key: 'nombreCompleto', label: 'Nombre y Apellido Completo' },
         { key: 'dni', label: 'DNI' },
@@ -304,7 +334,7 @@
       }
 
       if (!document.getElementById("aptoMedico").checked) {
-        mostrarAlerta("Apto Médico Requerido", "Debe marcar la declaración de Apto Médico Vigente 2026 para continuar.", "warning");
+        mostrarAlerta("Apto Médico Requerido", "Debe marcar la declaración de Apto Médico Vigente Año 2026 para continuar.", "warning");
         return;
       }
 
@@ -370,7 +400,7 @@
         try {
           result = JSON.parse(textResponse);
         } catch (errJson) {
-          throw new Error("Respuesta no válida del servidor Google (Verifique los permisos de Apps Script).");
+          throw new Error("Respuesta no válida del servidor Google.");
         }
 
         if (result.status === "success") {
@@ -392,6 +422,6 @@
         btn.innerText = "ENVIAR INSCRIPCIÓN";
       }
     });
-  </script>
+</script>
 </body>
 </html>
